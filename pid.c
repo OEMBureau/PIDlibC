@@ -14,17 +14,24 @@ extern "C"
 #include "pid.h"
 void PID_Initialize(PidType* pid);
 
+void PID_setRtc(PidType* pid, unsigned long rtc){
+    pid->rtc = rtc;
+}
 /*Constructor (...)*********************************************************
  *    The parameters specified here are those for for which we can't set up 
  *    reliable defaults, so we need to have the user set them.
  ***************************************************************************/
-void PID_init(PidType* pid, FloatType Kp, FloatType Ki, FloatType Kd,
-    PidDirectionType ControllerDirection) {
-  pid->myInput = 0;
-  pid->myOutput = 0;
-  pid->mySetpoint = 0;
-  pid->ITerm = 0;
-  pid->lastInput = 0;
+void PID_init(
+     PidType* pid,
+
+     FloatType Input, FloatType Output, FloatType Setpoint,
+     FloatType Kp, FloatType Ki, FloatType Kd, 
+     PidPonType POn,
+     PidDirectionType ControllerDirection,
+     unsigned long rtc) {
+  pid->myOutput = Output;
+  pid->myInput = Input;
+  pid->mySetpoint = Setpoint;
   pid->inAuto = false;
 
   PID_SetOutputLimits(pid, 0, 0xffff);
@@ -33,9 +40,9 @@ void PID_init(PidType* pid, FloatType Kp, FloatType Ki, FloatType Kd,
   pid->SampleTime = 100;
 
   PID_SetControllerDirection(pid, ControllerDirection);
-  PID_SetTunings(pid, Kp, Ki, Kd);
-
-//  pid->lastTime = millis() - pid->SampleTime;
+  PID_SetTunings(pid, Kp, Ki, Kd, POn);
+  pid->rtc = rtc;   
+  pid->lastTime = pid->rtc - pid->SampleTime;
 }
  
  
@@ -49,21 +56,31 @@ bool PID_Compute(PidType* pid) {
   if (!pid->inAuto) {
     return false;
   }
-//  unsigned long now = millis();
-//  unsigned long timeChange = (now - pid->lastTime);
-//  if (timeChange >= pid->SampleTime) {
+  unsigned long now = pid->rtc;
+  unsigned long timeChange = (now - pid->lastTime);
+  if (timeChange >= pid->SampleTime) {
     /*Compute all the working error variables*/
     FloatType input = pid->myInput;
     FloatType error = pid->mySetpoint - input;
-    pid->ITerm += (pid->ki * error);
-    if (pid->ITerm > pid->outMax)
-      pid->ITerm = pid->outMax;
-    else if (pid->ITerm < pid->outMin)
-      pid->ITerm = pid->outMin;
     FloatType dInput = (input - pid->lastInput);
+    pid->outputSum += (pid->ki * error);
 
-    /*Compute PID Output*/
-    FloatType output = pid->kp * error + pid->ITerm - pid->kd * dInput;
+    /*Add Proportional on Measurement, if P_ON_M is specified*/
+    if(!pid->pOnE) pid->outputSum-= pid->kp * dInput;
+
+    if (pid->outputSum > pid->outMax)
+      pid->outputSum = pid->outMax;
+    else if (pid->outputSum < pid->outMin)
+      pid->outputSum = pid->outMin;
+
+    /*Add Proportional on Error, if P_ON_E is specified*/
+	FloatType output;
+    if(pid->pOnE) output = pid->kp * error;
+    else output = 0;  
+    
+
+    /*Compute Rest of PID Output*/
+      output += pid->outputSum - pid->kd * dInput;
 
     if (output > pid->outMax)
       output = pid->outMax;
@@ -73,11 +90,11 @@ bool PID_Compute(PidType* pid) {
 
     /*Remember some variables for next time*/
     pid->lastInput = input;
-//    pid->lastTime = now;
+    pid->lastTime = now;
     return true;
-//  } else {
-//    return false;
-//  }
+  } else {
+    return false;
+  }
 }
 
 
@@ -87,10 +104,13 @@ bool PID_Compute(PidType* pid) {
  * be adjusted on the fly during normal operation
  ******************************************************************************/ 
 
-void PID_SetTunings(PidType* pid, FloatType Kp, FloatType Ki, FloatType Kd) {
+void PID_SetTunings(PidType* pid, FloatType Kp, FloatType Ki, FloatType Kd, PidPonType POn) {
   if (Kp < 0 || Ki < 0 || Kd < 0){
     return;
   }
+
+  pid->pOn = POn;
+  pid->pOnE = (POn == P_ON_E);
 
   pid->dispKp = Kp;
   pid->dispKi = Ki;
@@ -142,10 +162,10 @@ void PID_SetOutputLimits(PidType* pid, FloatType Min, FloatType Max) {
       pid->myOutput = pid->outMin;
     }
 
-    if (pid->ITerm > pid->outMax) {
-      pid->ITerm = pid->outMax;
-    } else if (pid->ITerm < pid->outMin) {
-      pid->ITerm = pid->outMin;
+    if (pid->outputSum > pid->outMax) {
+      pid->outputSum = pid->outMax;
+    } else if (pid->outputSum < pid->outMin) {
+      pid->outputSum = pid->outMin;
     }
   }
 }
@@ -170,12 +190,12 @@ void PID_SetMode(PidType* pid, PidModeType Mode)
  *  from manual to automatic mode.
  ******************************************************************************/ 
 void PID_Initialize(PidType* pid) {
-  pid->ITerm = pid->myOutput;
+  pid->outputSum = pid->myOutput;
   pid->lastInput = pid->myInput;
-  if (pid->ITerm > pid->outMax) {
-    pid->ITerm = pid->outMax;
-  } else if (pid->ITerm < pid->outMin) {
-    pid->ITerm = pid->outMin;
+  if (pid->outputSum > pid->outMax) {
+    pid->outputSum = pid->outMax;
+  } else if (pid->outputSum < pid->outMin) {
+    pid->outputSum = pid->outMin;
   }
 }
 

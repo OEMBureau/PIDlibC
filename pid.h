@@ -27,6 +27,12 @@ typedef enum
   PID_Direction_Reverse = 1
 } PidDirectionType;
 
+typedef enum
+{
+    P_ON_M = 0,
+    P_ON_E = 1
+}PidPonType;
+
 typedef struct {
   FloatType dispKp; // * we'll hold on to the tuning parameters in user-entered
   FloatType dispKi; //   format for display purposes
@@ -37,18 +43,20 @@ typedef struct {
   FloatType kd; // * (D)erivative Tuning Parameter
 
   PidDirectionType controllerDirection;
+  int pOn;
 
   FloatType myInput; // * Pointers to the Input, Output, and Setpoint variables
   FloatType myOutput; //   This creates a hard link between the variables and the
   FloatType mySetpoint; //   PID, freeing the user from having to constantly tell us
                      //   what these values are.  with pointers we'll just know.
 
-//  unsigned long lastTime;
-  FloatType ITerm, lastInput;
+  unsigned long rtc; // current RTC set by external module
+  unsigned long lastTime;
+  FloatType outputSum, lastInput;
 
   unsigned long SampleTime;
   FloatType outMin, outMax;
-  bool inAuto;
+  bool inAuto, pOnE;
 } PidType;
 
 //commonly used functions **************************************************************************
@@ -56,11 +64,14 @@ typedef struct {
 //  constructor.  links the PID to the Input, Output, and
 //  Setpoint.  Initial tuning parameters are also set here
 void PID_init(PidType* pid,
-    FloatType kp,
-    FloatType ki,
-    FloatType kd,
-    PidDirectionType controllerDirection);
-
+     
+     FloatType Input, FloatType Output, FloatType Setpoint,
+     FloatType Kp, FloatType Ki, FloatType Kd, 
+     PidPonType POn,
+     PidDirectionType ControllerDirection,
+     unsigned long rtc);
+// sets PID to current value of RTC in msec     
+void PID_setRtc(PidType* pid, unsigned long rtc);
 // sets PID to either Manual (0) or Auto (non-0)
 void PID_SetMode(PidType* pid, PidModeType mode);
 

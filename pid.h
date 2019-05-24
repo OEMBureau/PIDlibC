@@ -1,3 +1,11 @@
+/*
+
+Usage:
+
+
+
+*/
+
 #ifndef __PID_H_
 #define __PID_H_
 
@@ -58,20 +66,17 @@ typedef struct {
   FloatType outMin, outMax;
   bool inAuto, pOnE;
 } PidType;
+/////////////////////////////////////////////////////////////////////////////////////
+//                          commonly used functions 
+/////////////////////////////////////////////////////////////////////////////////////
 
-//commonly used functions **************************************************************************
+// sets PID internal 'now' RTC to the specified value (msec)     
+void PID_setRtc(PidType* pid, unsigned long rtc);
 
 //  constructor.  links the PID to the Input, Output, and
 //  Setpoint.  Initial tuning parameters are also set here
-void PID_init(PidType* pid,
-     
-     FloatType Input, FloatType Output, FloatType Setpoint,
-     FloatType Kp, FloatType Ki, FloatType Kd, 
-     PidPonType POn,
-     PidDirectionType ControllerDirection,
-     unsigned long rtc);
-// sets PID to current value of RTC in msec     
-void PID_setRtc(PidType* pid, unsigned long rtc);
+void PID_init(PidType* pid, FloatType Input, FloatType Output, FloatType Setpoint, FloatType Kp, FloatType Ki, FloatType Kd, PidPonType POn, PidDirectionType ControllerDirection, unsigned long rtc);
+
 // sets PID to either Manual (0) or Auto (non-0)
 void PID_SetMode(PidType* pid, PidModeType mode);
 
@@ -86,7 +91,10 @@ bool PID_Compute(PidType* pid);
 // the application
 void PID_SetOutputLimits(PidType* pid, FloatType min, FloatType max);
 
-//available but not commonly used functions ********************************************************
+
+/////////////////////////////////////////////////////////////////////////////////////
+//                  available but not commonly used functions 
+/////////////////////////////////////////////////////////////////////////////////////
 
 // While most users will set the tunings once in the
 // constructor, this function gives the user the option
@@ -100,7 +108,7 @@ void PID_SetTunings(PidType* pid, FloatType kp, FloatType ki, FloatType kd);
 void PID_SetControllerDirection(PidType* pid, PidDirectionType Direction);
 
 // sets the frequency, in Milliseconds, with which
-// the PID calculation is performed.  default is 100
+// the PID calculation is performed.  default is 1000 (1 sec)
 void PID_SetSampleTime(PidType* pid, int newSampleTime);
 
 //Display functions ****************************************************************

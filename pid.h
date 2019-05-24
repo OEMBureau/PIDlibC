@@ -2,7 +2,7 @@
 
 Usage:
 
-
+//TODO:
 
 */
 
@@ -77,7 +77,7 @@ void PID_setRtc(PidType* pid, unsigned long rtc);
 //  Setpoint.  Initial tuning parameters are also set here
 void PID_init(PidType* pid, FloatType Input, FloatType Output, FloatType Setpoint, FloatType Kp, FloatType Ki, FloatType Kd, PidPonType POn, PidDirectionType ControllerDirection, unsigned long rtc);
 
-// sets PID to either Manual (0) or Auto (non-0)
+// sets PID to either Manual  or Auto 
 void PID_SetMode(PidType* pid, PidModeType mode);
 
 // performs the PID calculation.  it should be

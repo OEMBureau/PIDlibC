@@ -1,7 +1,7 @@
 #include <stdio.h>
-
+#include "../pid.h"
 int main(){
-    printf("Hello!");
+    printf("\n\rPID Controller Test running...\n\r");
 
     return 0;
 }

@@ -53,7 +53,7 @@ int main(){
 //  I   N   I   T
 //
     // Define Variables we'll be connecting to
-    double Setpoint, Input, Output;
+    FloatType Setpoint, Input, Output;
     // Real Time counter in msec
     unsigned long rtc = 0; 
     // Specify the links and initial tuning parameters
@@ -77,7 +77,7 @@ int main(){
     //tell the PID to range between 0 and the full window size
      PID_SetOutputLimits(&myPID, 0, MINIMAL_TIME_WINDOW_SEC*1000);
     // Set Sample time in msec (!) should be identical to window size
-     PID_SetSampleTime(&myPID, (MINIMAL_TIME_WINDOW_SEC * 1000)); 
+     PID_SetSampleTime(&myPID, (unsigned long)(MINIMAL_TIME_WINDOW_SEC * 1000)); 
 
      unsigned long windowStartTime = rtc; // defined individually for each PID in a system
 

@@ -10,7 +10,7 @@ extern "C"
  *
  * This Library is licensed under a GPLv3 License
  **********************************************************************************************/
-
+#include  <stdio.h>
 #include "pid.h"
 void PID_Initialize(PidType* pid);
 
@@ -40,7 +40,7 @@ void PID_init(
   PID_SetControllerDirection(pid, ControllerDirection);
   PID_SetTunings(pid, Kp, Ki, Kd, POn);
   pid->rtc = rtc;   
-  pid->lastTime = pid->rtc - pid->SampleTime;
+  pid->lastTime = *pid->rtc - pid->SampleTime;
 }
  
  
@@ -55,7 +55,7 @@ bool PID_Compute(PidType* pid) {
     return false;
   }
   unsigned long now = *pid->rtc;
-  printf("\n\rPID RTC: %d\n\r", now);
+  printf("\n\rPID RTC: %lu\n\r", now);
   unsigned long timeChange = (now - pid->lastTime);
   if (timeChange >= pid->SampleTime) {
     /*Compute all the working error variables*/
@@ -127,7 +127,7 @@ void PID_SetTunings(PidType* pid, FloatType Kp, FloatType Ki, FloatType Kd, PidP
 /* SetSampleTime(...) *********************************************************
  * sets the period, in Milliseconds, at which the calculation is performed
  ******************************************************************************/
-void PID_SetSampleTime(PidType* pid, unsigned long* NewSampleTime) {
+void PID_SetSampleTime(PidType* pid, unsigned long NewSampleTime) {
   if (NewSampleTime > 0) {
     FloatType ratio = (FloatType) NewSampleTime / (FloatType) pid->SampleTime;
     pid->ki *= ratio;

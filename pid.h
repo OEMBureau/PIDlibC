@@ -88,7 +88,7 @@ void PID_SetOutputLimits(PidType* pid, FloatType min, FloatType max);
 // While most users will set the tunings once in the
 // constructor, this function gives the user the option
 // of changing tunings during runtime for Adaptive control
-void PID_SetTunings(PidType* pid, FloatType kp, FloatType ki, FloatType kd);
+void PID_SetTunings(PidType* pid, FloatType Kp, FloatType Ki, FloatType Kd, PidPonType POn);
 
 // Sets the Direction, or "Action" of the controller. DIRECT
 // means the output will increase when error is positive. REVERSE
@@ -98,7 +98,7 @@ void PID_SetControllerDirection(PidType* pid, PidDirectionType Direction);
 
 // sets the frequency, in Milliseconds, with which
 // the PID calculation is performed.  default is 1000 (1 sec)
-void PID_SetSampleTime(PidType* pid, unsigned long* newSampleTime);
+void PID_SetSampleTime(PidType* pid, unsigned long newSampleTime);
 
 //Display functions ****************************************************************
 // These functions query the pid for interal values.

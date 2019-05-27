@@ -1,16 +1,5 @@
-/*
-
-Usage:
-
-//TODO:
-
-*/
-
 #ifndef __PID_H_
 #define __PID_H_
-
-
-
 
 
 #ifdef __cplusplus
@@ -22,7 +11,10 @@ typedef float FloatType;
 //typedef double floatType;
 #include <stdbool.h>
 
-//Constants used in some of the functions below
+// Default sample time
+#define SAMPLE_TIME_MSEC (1000)
+
+// Constants used in some of the functions below
 typedef enum
 {
   PID_Mode_Automatic = 1,
@@ -53,16 +45,16 @@ typedef struct {
   PidDirectionType controllerDirection;
   int pOn;
 
-  FloatType myInput; // * Pointers to the Input, Output, and Setpoint variables
-  FloatType myOutput; //   This creates a hard link between the variables and the
-  FloatType mySetpoint; //   PID, freeing the user from having to constantly tell us
+  FloatType* myInput; // * Pointers to the Input, Output, and Setpoint variables
+  FloatType* myOutput; //   This creates a hard link between the variables and the
+  FloatType* mySetpoint; //   PID, freeing the user from having to constantly tell us
                      //   what these values are.  with pointers we'll just know.
 
-  unsigned long rtc; // current RTC set by external module
-  unsigned long lastTime;
+  unsigned long* rtc; // RTC (msec)
+  unsigned long lastTime; // (msec)
   FloatType outputSum, lastInput;
 
-  unsigned long SampleTime;
+  unsigned long SampleTime; // defines sample period (msec), if RTC since  last compute is less than the period calculation skiped
   FloatType outMin, outMax;
   bool inAuto, pOnE;
 } PidType;
@@ -70,12 +62,9 @@ typedef struct {
 //                          commonly used functions 
 /////////////////////////////////////////////////////////////////////////////////////
 
-// sets PID internal 'now' RTC to the specified value (msec)     
-void PID_setRtc(PidType* pid, unsigned long rtc);
-
 //  constructor.  links the PID to the Input, Output, and
 //  Setpoint.  Initial tuning parameters are also set here
-void PID_init(PidType* pid, FloatType Input, FloatType Output, FloatType Setpoint, FloatType Kp, FloatType Ki, FloatType Kd, PidPonType POn, PidDirectionType ControllerDirection, unsigned long rtc);
+void PID_init(PidType* pid, FloatType* Input, FloatType* Output, FloatType* Setpoint, FloatType Kp, FloatType Ki, FloatType Kd, PidPonType POn, PidDirectionType ControllerDirection, unsigned long* rtc);
 
 // sets PID to either Manual  or Auto 
 void PID_SetMode(PidType* pid, PidModeType mode);
@@ -109,7 +98,7 @@ void PID_SetControllerDirection(PidType* pid, PidDirectionType Direction);
 
 // sets the frequency, in Milliseconds, with which
 // the PID calculation is performed.  default is 1000 (1 sec)
-void PID_SetSampleTime(PidType* pid, int newSampleTime);
+void PID_SetSampleTime(PidType* pid, unsigned long* newSampleTime);
 
 //Display functions ****************************************************************
 // These functions query the pid for interal values.

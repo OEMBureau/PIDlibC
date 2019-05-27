@@ -55,7 +55,7 @@ bool PID_Compute(PidType* pid) {
     return false;
   }
   unsigned long now = *pid->rtc;
-  printf("\n\rPID RTC: %lu\n\r", now);
+  //printf("\n\rPID RTC: %lu\n\r", now);
   unsigned long timeChange = (now - pid->lastTime);
   if (timeChange >= pid->SampleTime) {
     /*Compute all the working error variables*/

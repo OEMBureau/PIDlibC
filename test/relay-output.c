@@ -24,20 +24,29 @@ bool relay_state(
     unsigned long* windowStartTime,
     unsigned long windowTimeInSec
     ){
+    //printf("\n\rRTC = %lu", *pid->rtc);
     // Locals
     bool state = false;
+    unsigned long rtc = *pid->rtc ;
+    unsigned long w, ws;
     // Compute     
     PID_Compute(pid);
 
     // Define state of relay
-    if (pid->rtc - windowStartTime > (windowTimeInSec * 1000)){
-        windowStartTime += (windowTimeInSec * 1000);
+    if ((rtc - *windowStartTime) > (windowTimeInSec * 1000)){
+        *windowStartTime += (windowTimeInSec * 1000);
+        //printf("*windowStartTime:%lu\n\r", *windowStartTime);
     }
 
-    if(*pid->myOutput < *pid->rtc - *windowStartTime) 
-        state = false;
-    else 
+  
+    if(*pid->myOutput < (FloatType)(rtc - *windowStartTime)) {
         state = true;
+    }else{
+        state = false;
+    } 
+        
+
+    printf("rtc:%06lu setpoint:%f input:%02f output:%02f w:%lu relay:%s\n\r", *pid->rtc, *pid->mySetpoint,*pid->myInput, *pid->myOutput, (rtc - *windowStartTime), ((state == true)?"1":"0"));
 
     // return result 
     return state;
@@ -85,8 +94,13 @@ int main(){
 //  W   O   R   K   
 //
 
+    // Make sure PID set in auto
+    PID_SetMode(&myPID, PID_Mode_Automatic);
+
     for(int i=0; i<100; i++){// in reality while(1){
         rtc += 1000;
+        Input += 3;
+        //printf("\n\rRTC = %lu", rtc);
         relay_state(&myPID, &windowStartTime, MINIMAL_TIME_WINDOW_SEC);
     }
 
